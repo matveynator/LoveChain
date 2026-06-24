@@ -1,4 +1,4 @@
 # LoveChain
 Blockchain for lovers
 
-<img width="1254" height="1254" alt="lovechain" src="https://github.com/user-attachments/assets/6706f738-56b3-443a-bb29-e058cc5e2df5" />
+<img width="600" height="600" alt="lovechain" src="https://github.com/user-attachments/assets/62b8031b-d155-4382-91ef-2eb0fa0e92e4" />
