@@ -1,7 +1,33 @@
 # LoveChain
-<<<<<<< HEAD
+
+**Blockchain for lovers.**
 
 LoveChain is a private romantic blockchain and future live trust map for a couple.
+
+It is a digital chain of love, trust, and shared life. The project is not about money, deals, control, or public status. It is about preserving living proof that two people keep choosing each other: care, walks, travel, reconciliation, intimacy, photographs, family moments, and daily attention.
+
+The emotional idea is close to the feeling of a song for lovers: one more song for two people waiting for love, moving toward each other, and refusing to leave the dream. LoveChain turns that feeling into a private chain of shared moments.
+
+<img width="100%" height="100%" alt="lovechain" src="https://github.com/user-attachments/assets/62b8031b-d155-4382-91ef-2eb0fa0e92e4" />
+
+## LoveChain Song
+
+```text
+Blockchain for lovers tonight,
+write our hearts in a chain of light.
+Every step, every touch, every sign,
+becomes a block that says you are mine.
+
+No public feed, no jealous score,
+just one shared world behind one door.
+If we are close, if we move as one,
+LoveChain remembers what love has done.
+
+Play one more for the lovers tonight,
+for the hands that return, for the eyes that shine.
+We do not mine for silver or gold,
+we mine the moments we want to hold.
+```
 
 ## Platform Layout
 
@@ -84,8 +110,3 @@ The core package holds reusable relationship-chain logic. The Android package ho
 Open `ANDROID/` in Android Studio and run the `app` module.
 
 The project is intentionally local-first. Background location, Bluetooth scanning, and server synchronization are not enabled yet.
-=======
-Blockchain for lovers
-
-<img width="100%" height="100%" alt="lovechain" src="https://github.com/user-attachments/assets/62b8031b-d155-4382-91ef-2eb0fa0e92e4" />
->>>>>>> 36634ee5b3496e362bf21af33b649ebf1d7e4788
