@@ -24,7 +24,8 @@ interface LoveEventMiner {
 data class BluetoothPresenceSnapshot(
     val partnerDeviceSeen: Boolean,
     val rssi: Int?,
-    val nearMinutes: Int
+    val nearMinutes: Int,
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 class PlaceholderLocationService : LocationService {

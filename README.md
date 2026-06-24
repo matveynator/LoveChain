@@ -60,8 +60,12 @@ Android — первая рабочая платформа. iOS и TinyGO зар
 * русские и английские ресурсы интерфейса;
 * Jetpack Compose UI;
 * ручные блоки Together, Walk, Travel и Gratitude;
-* заглушку LoveMap с текстом про взаимную прозрачность;
-* заглушки для GPS, Bluetooth presence, motion detection и event mining.
+* LoveMap foreground service;
+* геолокацию при включённом режиме LoveMap;
+* BLE advertise + scan для подтверждения близости;
+* локальную запись LoveMap snapshots;
+* HTTP sync stub с настраиваемым endpoint;
+* заглушки для motion detection и event mining.
 
 В приложении нет рекламы, публичной социальной ленты, негативного скоринга и механик ревности.
 
@@ -87,16 +91,16 @@ ANDROID/app/src/main/java/lovechain/android/
 ## Будущие версии
 
 ```text
-0.3 LoveMap
+0.3 LoveMap Server
     регистрация пары
     местоположение партнёра
     батарея и статус движения
-    серверный relay
+    Go stdlib relay
 
 0.4 Presence
-    Bluetooth-подтверждение
     Near Block
     Together Block
+    кандидат блока из BLE + GPS
 
 0.5 Event Mining
     определение прогулки
@@ -109,4 +113,4 @@ ANDROID/app/src/main/java/lovechain/android/
 
 Откройте `ANDROID/` в Android Studio и запустите модуль `app`.
 
-Проект специально остаётся local-first. Фоновая геолокация, Bluetooth scanning и серверная синхронизация пока не включены.
+Проект остаётся local-first. LoveMap запускается только явно из интерфейса, показывает foreground notification, пишет snapshots локально и отправляет их на sync endpoint только если endpoint задан.

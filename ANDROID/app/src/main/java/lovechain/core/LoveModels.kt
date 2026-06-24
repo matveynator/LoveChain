@@ -44,6 +44,29 @@ data class LoveLocationSnapshot(
     val batteryPercent: Int?
 )
 
+data class LoveMapSnapshot(
+    val deviceFingerprint: String,
+    val locationSnapshot: LoveLocationSnapshot?,
+    val bluetoothPresenceSnapshot: BluetoothPresenceSnapshot?,
+    val activityType: ActivityType,
+    val serviceRunning: Boolean,
+    val syncEndpoint: String?,
+    val lastSyncStatus: String?,
+    val timestamp: Long
+)
+
+data class LoveMapServiceState(
+    val running: Boolean,
+    val lastSnapshot: LoveMapSnapshot?
+)
+
+data class LoveMapSyncResult(
+    val attempted: Boolean,
+    val success: Boolean,
+    val statusText: String,
+    val timestamp: Long
+)
+
 data class PartnerPresence(
     val partnerName: String,
     val visibilityMode: VisibilityMode,

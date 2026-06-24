@@ -22,5 +22,12 @@
     <string name="mutual_openness">Mutual openness</string>
     <string name="lovemap_placeholder">LoveMap is visible to both partners. Location sharing is transparent, voluntary, and can be paused.</string>
     <string name="lovemap_default_mode">Default mode: open always for the loved person.</string>
+    <string name="lovemap_service_title">LoveMap service</string>
+    <string name="lovemap_running">LoveMap is active. Location and Bluetooth presence are being recorded while this mode is on.</string>
+    <string name="lovemap_paused">LoveMap is paused. No background location or Bluetooth scan is running.</string>
+    <string name="lovemap_start">Turn on</string>
+    <string name="lovemap_pause">Pause</string>
+    <string name="lovemap_sync_endpoint">Sync endpoint, optional</string>
+    <string name="lovemap_consent">Both partners must know when LoveMap is on. This mode is transparent and can be stopped at any time.</string>
     <string name="next_services">Next services</string>
 </resources>

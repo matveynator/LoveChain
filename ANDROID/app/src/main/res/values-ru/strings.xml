@@ -22,5 +22,12 @@
     <string name="mutual_openness">Взаимная открытость</string>
     <string name="lovemap_placeholder">LoveMap видна обоим партнёрам. Геолокация прозрачна, добровольна и может быть поставлена на паузу.</string>
     <string name="lovemap_default_mode">Основной режим: открыто всегда для любимого человека.</string>
+    <string name="lovemap_service_title">Сервис LoveMap</string>
+    <string name="lovemap_running">LoveMap активна. Геолокация и Bluetooth-близость записываются, пока этот режим включён.</string>
+    <string name="lovemap_paused">LoveMap на паузе. Фоновая геолокация и Bluetooth scan не работают.</string>
+    <string name="lovemap_start">Включить</string>
+    <string name="lovemap_pause">Пауза</string>
+    <string name="lovemap_sync_endpoint">Sync endpoint, необязательно</string>
+    <string name="lovemap_consent">Оба партнёра должны знать, когда LoveMap включена. Режим прозрачен и может быть остановлен в любой момент.</string>
     <string name="next_services">Следующие сервисы</string>
 </resources>

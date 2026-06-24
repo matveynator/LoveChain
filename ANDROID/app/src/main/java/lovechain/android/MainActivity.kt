@@ -1,5 +1,12 @@
 package lovechain.android
 
+import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -27,9 +34,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import lovechain.core.ActivityType
 import lovechain.core.ConfirmationStatus
 import lovechain.core.CoupleProfile
@@ -57,6 +67,7 @@ import lovechain.core.LoveBlockDraft
 import lovechain.core.LoveBlockSignatureVerifier
 import lovechain.core.LoveBlockType
 import lovechain.core.LoveChain
+import lovechain.core.LoveMapSnapshot
 import lovechain.core.PartnerPresence
 import lovechain.core.VisibilityMode
 import java.text.SimpleDateFormat
@@ -89,6 +100,7 @@ fun LoveChainApp() {
 private fun LoveChainScreen() {
     val context = LocalContext.current
     val sqliteStore = remember { LoveBlockSQLiteStore(context) }
+    val loveMapStore = remember { LoveMapSQLiteStore(context) }
     val legacyJsonStore = remember { LoveBlockJsonStore(context) }
     val deviceKeyStore = remember { DeviceKeyStore() }
     val loveChain = remember { LoveChain() }
@@ -109,7 +121,27 @@ private fun LoveChainScreen() {
     var selectedTab by rememberSaveable { mutableStateOf(ScreenTab.CHAIN) }
     var blocks by remember { mutableStateOf(emptyList<LoveBlock>()) }
     var statusText by remember { mutableStateOf("") }
+    var loveMapSnapshot by remember { mutableStateOf<LoveMapSnapshot?>(null) }
+    var syncEndpointText by remember {
+        mutableStateOf(
+            context.getSharedPreferences(LoveMapForegroundService.PreferencesName, Context.MODE_PRIVATE)
+                .getString(LoveMapForegroundService.SyncEndpointKey, "")
+                .orEmpty()
+        )
+    }
     val localFingerprint = remember { deviceKeyStore.fingerprint() }
+    val loveMapPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true ||
+            hasPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ||
+            hasPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+
+        if (hasLocationPermission) {
+            startLoveMapService(context)
+        }
+    }
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -170,6 +202,7 @@ private fun LoveChainScreen() {
     }
 
     LaunchedEffect(Unit) {
+        loveMapSnapshot = loveMapStore.latestSnapshot()
         val sqliteBlocks = sqliteStore.loadBlocks()
         val legacyBlocks = if (!legacyJsonStore.wasMigratedToSQLite()) {
             legacyJsonStore.loadBlocks()
@@ -200,6 +233,24 @@ private fun LoveChainScreen() {
         blocks = readyBlocks
         sqliteStore.replaceAll(readyBlocks)
         legacyJsonStore.markMigratedToSQLite()
+    }
+
+    DisposableEffect(Unit) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(receiverContext: Context?, intent: Intent?) {
+                loveMapSnapshot = loveMapStore.latestSnapshot()
+            }
+        }
+        val intentFilter = IntentFilter(LoveMapForegroundService.ActionSnapshotUpdated)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(receiver, intentFilter)
+        }
+
+        onDispose {
+            context.unregisterReceiver(receiver)
+        }
     }
 
     Column(
@@ -241,7 +292,22 @@ private fun LoveChainScreen() {
                 }
             )
 
-            ScreenTab.MAP -> LoveMapTab(partnerPresence = partnerPresence)
+            ScreenTab.MAP -> LoveMapTab(
+                partnerPresence = partnerPresence,
+                loveMapSnapshot = loveMapSnapshot,
+                syncEndpointText = syncEndpointText,
+                onSyncEndpointChange = { nextEndpoint -> syncEndpointText = nextEndpoint },
+                onStartLoveMap = {
+                    saveLoveMapSyncEndpoint(context, syncEndpointText)
+                    val missingPermissions = missingLoveMapPermissions(context)
+                    if (missingPermissions.isEmpty()) {
+                        startLoveMapService(context)
+                    } else {
+                        loveMapPermissionLauncher.launch(missingPermissions.toTypedArray())
+                    }
+                },
+                onStopLoveMap = { stopLoveMapService(context) }
+            )
         }
     }
 }
@@ -659,14 +725,34 @@ private fun DetailPill(text: String) {
 }
 
 @Composable
-private fun LoveMapTab(partnerPresence: PartnerPresence) {
+private fun LoveMapTab(
+    partnerPresence: PartnerPresence,
+    loveMapSnapshot: LoveMapSnapshot?,
+    syncEndpointText: String,
+    onSyncEndpointChange: (String) -> Unit,
+    onStartLoveMap: () -> Unit,
+    onStopLoveMap: () -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            LoveMapPreview(partnerPresence = partnerPresence)
+            LoveMapControls(
+                loveMapSnapshot = loveMapSnapshot,
+                syncEndpointText = syncEndpointText,
+                onSyncEndpointChange = onSyncEndpointChange,
+                onStartLoveMap = onStartLoveMap,
+                onStopLoveMap = onStopLoveMap
+            )
+        }
+
+        item {
+            LoveMapPreview(
+                partnerPresence = partnerPresence,
+                loveMapSnapshot = loveMapSnapshot
+            )
         }
 
         item {
@@ -674,13 +760,81 @@ private fun LoveMapTab(partnerPresence: PartnerPresence) {
         }
 
         item {
-            FutureServicesCard()
+            FutureServicesCard(loveMapSnapshot = loveMapSnapshot)
         }
     }
 }
 
 @Composable
-private fun LoveMapPreview(partnerPresence: PartnerPresence) {
+private fun LoveMapControls(
+    loveMapSnapshot: LoveMapSnapshot?,
+    syncEndpointText: String,
+    onSyncEndpointChange: (String) -> Unit,
+    onStartLoveMap: () -> Unit,
+    onStopLoveMap: () -> Unit
+) {
+    val running = loveMapSnapshot?.serviceRunning == true
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.lovemap_service_title),
+                color = Wine,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = if (running) {
+                    stringResource(R.string.lovemap_running)
+                } else {
+                    stringResource(R.string.lovemap_paused)
+                },
+                color = Cocoa,
+                fontSize = 14.sp
+            )
+            OutlinedTextField(
+                value = syncEndpointText,
+                onValueChange = onSyncEndpointChange,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text(text = stringResource(R.string.lovemap_sync_endpoint)) }
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ActionButton(
+                    text = stringResource(R.string.lovemap_start),
+                    onClick = onStartLoveMap,
+                    modifier = Modifier.weight(1f)
+                )
+                ActionButton(
+                    text = stringResource(R.string.lovemap_pause),
+                    onClick = onStopLoveMap,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Text(
+                text = stringResource(R.string.lovemap_consent),
+                color = MutedCocoa,
+                fontSize = 13.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun LoveMapPreview(
+    partnerPresence: PartnerPresence,
+    loveMapSnapshot: LoveMapSnapshot?
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -719,7 +873,7 @@ private fun LoveMapPreview(partnerPresence: PartnerPresence) {
             ) {
                 Text(text = stringResource(R.string.lovemap_title), color = Wine, fontWeight = FontWeight.Bold)
                 Text(
-                    text = "${partnerPresence.distanceMeters ?: 0} m apart · battery ${partnerPresence.batteryPercent ?: 0}% · ${partnerPresence.lastUpdateText}",
+                    text = loveMapStatusText(partnerPresence, loveMapSnapshot),
                     color = Cocoa,
                     fontSize = 13.sp
                 )
@@ -788,7 +942,7 @@ private fun TransparencyCard() {
 }
 
 @Composable
-private fun FutureServicesCard() {
+private fun FutureServicesCard(loveMapSnapshot: LoveMapSnapshot?) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -799,10 +953,10 @@ private fun FutureServicesCard() {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(text = stringResource(R.string.next_services), color = Wine, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            ServiceRow(name = "LocationService", status = "GPS placeholder")
-            ServiceRow(name = "BluetoothPresenceService", status = "near block placeholder")
-            ServiceRow(name = "MotionDetector", status = "walking and travel placeholder")
-            ServiceRow(name = "LoveEventMiner", status = "candidate block placeholder")
+            ServiceRow(name = "LocationService", status = locationStatus(loveMapSnapshot))
+            ServiceRow(name = "BluetoothPresenceService", status = bluetoothStatus(loveMapSnapshot))
+            ServiceRow(name = "LoveMapSyncClient", status = loveMapSnapshot?.lastSyncStatus ?: "sync disabled")
+            ServiceRow(name = "MotionDetector", status = "standing placeholder")
         }
     }
 }
@@ -821,6 +975,85 @@ private fun ServiceRow(name: String, status: String) {
 private fun formatTimestamp(timestamp: Long): String {
     val formatter = SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
     return formatter.format(Date(timestamp))
+}
+
+private fun loveMapStatusText(
+    partnerPresence: PartnerPresence,
+    loveMapSnapshot: LoveMapSnapshot?
+): String {
+    val locationSnapshot = loveMapSnapshot?.locationSnapshot
+    val bluetoothSnapshot = loveMapSnapshot?.bluetoothPresenceSnapshot
+    val batteryText = locationSnapshot?.batteryPercent?.let { percent -> "battery $percent%" }
+        ?: "battery ${partnerPresence.batteryPercent ?: 0}%"
+    val distanceText = "${partnerPresence.distanceMeters ?: 0} m apart"
+    val bluetoothText = if (bluetoothSnapshot?.partnerDeviceSeen == true) {
+        "BLE near ${bluetoothSnapshot.rssi ?: 0} dBm"
+    } else {
+        "BLE far"
+    }
+    val locationText = if (locationSnapshot == null) {
+        "GPS waiting"
+    } else {
+        "GPS ${"%.5f".format(locationSnapshot.latitude)}, ${"%.5f".format(locationSnapshot.longitude)}"
+    }
+
+    return listOf(distanceText, batteryText, bluetoothText, locationText).joinToString(separator = " · ")
+}
+
+private fun locationStatus(loveMapSnapshot: LoveMapSnapshot?): String {
+    val locationSnapshot = loveMapSnapshot?.locationSnapshot ?: return "waiting"
+    return "${"%.5f".format(locationSnapshot.latitude)}, ${"%.5f".format(locationSnapshot.longitude)}"
+}
+
+private fun bluetoothStatus(loveMapSnapshot: LoveMapSnapshot?): String {
+    val bluetoothSnapshot = loveMapSnapshot?.bluetoothPresenceSnapshot ?: return "waiting"
+    if (!bluetoothSnapshot.partnerDeviceSeen) {
+        return "far"
+    }
+
+    return "near ${bluetoothSnapshot.rssi ?: 0} dBm"
+}
+
+private fun startLoveMapService(context: Context) {
+    val intent = Intent(context, LoveMapForegroundService::class.java)
+        .setAction(LoveMapForegroundService.ActionStart)
+    ContextCompat.startForegroundService(context, intent)
+}
+
+private fun stopLoveMapService(context: Context) {
+    val intent = Intent(context, LoveMapForegroundService::class.java)
+        .setAction(LoveMapForegroundService.ActionStop)
+    context.startService(intent)
+}
+
+private fun saveLoveMapSyncEndpoint(context: Context, syncEndpoint: String) {
+    context.getSharedPreferences(LoveMapForegroundService.PreferencesName, Context.MODE_PRIVATE)
+        .edit()
+        .putString(LoveMapForegroundService.SyncEndpointKey, syncEndpoint.trim())
+        .apply()
+}
+
+private fun missingLoveMapPermissions(context: Context): List<String> {
+    val permissions = mutableListOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+        permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE)
+        permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    return permissions.filter { permission -> !hasPermission(context, permission) }
+}
+
+private fun hasPermission(context: Context, permission: String): Boolean {
+    return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 }
 
 private fun signaturesAreValid(blocks: List<LoveBlock>): Boolean {
