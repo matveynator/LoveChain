@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,7 +41,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -245,28 +248,40 @@ private fun LoveChainScreen() {
 
 @Composable
 private fun Header(coupleProfile: CoupleProfile) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 20.dp)
+            .padding(horizontal = 20.dp, vertical = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "LoveChain",
-            color = Wine,
-            fontSize = 34.sp,
-            fontWeight = FontWeight.Bold
+        Image(
+            painter = painterResource(id = R.drawable.lovechain),
+            contentDescription = stringResource(R.string.app_name),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(72.dp)
+                .clip(RoundedCornerShape(8.dp))
         )
-        Text(
-            text = coupleProfile.displayName(),
-            color = Cocoa,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Text(
-            text = stringResource(R.string.app_tagline),
-            color = MutedCocoa,
-            fontSize = 14.sp
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "LoveChain",
+                color = Wine,
+                fontSize = 34.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = coupleProfile.displayName(),
+                color = Cocoa,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = stringResource(R.string.app_tagline),
+                color = MutedCocoa,
+                fontSize = 14.sp
+            )
+        }
     }
 }
 

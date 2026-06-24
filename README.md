@@ -2,15 +2,15 @@
 
 **Blockchain for lovers.**
 
-LoveChain is a private romantic blockchain and future live trust map for a couple.
+LoveChain — это цифровой блокчейн любви, доверия и совместной жизни пары.
 
-It is a digital chain of love, trust, and shared life. The project is not about money, deals, control, or public status. It is about preserving living proof that two people keep choosing each other: care, walks, travel, reconciliation, intimacy, photographs, family moments, and daily attention.
+Это не приложение про деньги, сделки, контроль или публичный статус. LoveChain сохраняет живые доказательства того, что два человека выбирают друг друга каждый день: заботу, прогулки, путешествия, примирения, интимность, фотографии, семейные моменты и внимание.
 
-The emotional idea is close to the feeling of a song for lovers: one more song for two people waiting for love, moving toward each other, and refusing to leave the dream. LoveChain turns that feeling into a private chain of shared moments.
+Идея эмоционально близка к ощущению песни для влюблённых: ещё одна песня для двоих, которые ждут любви, движутся навстречу друг другу и не хотят выходить из этого сна. LoveChain превращает это чувство в личную цепочку общих моментов.
 
-<img width="100%" height="100%" alt="lovechain" src="https://github.com/user-attachments/assets/62b8031b-d155-4382-91ef-2eb0fa0e92e4" />
+![LoveChain](lovechain.png)
 
-## LoveChain Song
+## Песня LoveChain
 
 ```text
 Blockchain for lovers tonight,
@@ -29,43 +29,43 @@ We do not mine for silver or gold,
 we mine the moments we want to hold.
 ```
 
-## Platform Layout
+## Структура платформ
 
 ```text
 ANDROID/
-    Android app in Kotlin and Jetpack Compose.
+    Android-приложение на Kotlin и Jetpack Compose.
 
 IOS/
-    Future iPhone app workspace.
+    Будущая рабочая область iPhone-приложения.
 
 TinyGO/
-    Future firmware and shared low-level ring logic.
+    Будущая прошивка и низкоуровневая логика для умных колец.
 ```
 
-Android is the first working platform. iOS and TinyGO are prepared as separate work areas so platform code does not mix.
+Android — первая рабочая платформа. iOS и TinyGO заранее вынесены в отдельные папки, чтобы код разных платформ не смешивался.
 
-## Version 0.2
+## Версия 0.2
 
-The current Android version contains:
+Текущая Android-версия содержит:
 
-* local LoveBlock models;
-* SHA-256 block hashes;
-* Genesis Block creation;
+* локальные модели LoveBlock;
+* SHA-256 хеши блоков;
+* создание Genesis Block;
 * LoveCoins;
-* local SQLite storage;
-* Android Keystore device signatures;
-* confirmation statuses for signed and partner-confirmed blocks;
-* JSON export and import;
-* migration from the first SharedPreferences JSON store;
-* Russian and English UI resources;
+* локальное хранение в SQLite;
+* подписи устройства через Android Keystore;
+* статусы подтверждения подписанных и совместно подтверждённых блоков;
+* экспорт и импорт JSON;
+* миграцию из первого SharedPreferences JSON-хранилища;
+* русские и английские ресурсы интерфейса;
 * Jetpack Compose UI;
-* manual Together, Walk, Travel, and Gratitude blocks;
-* LoveMap placeholder with mutual transparency text;
-* placeholders for GPS, Bluetooth presence, motion detection, and event mining.
+* ручные блоки Together, Walk, Travel и Gratitude;
+* заглушку LoveMap с текстом про взаимную прозрачность;
+* заглушки для GPS, Bluetooth presence, motion detection и event mining.
 
-There are no ads, no public social feed, no negative scoring, and no jealousy mechanics.
+В приложении нет рекламы, публичной социальной ленты, негативного скоринга и механик ревности.
 
-## Architecture
+## Архитектура
 
 ```text
 ANDROID/app/src/main/java/lovechain/core/
@@ -82,31 +82,31 @@ ANDROID/app/src/main/java/lovechain/android/
     LoveChainJsonCodec.kt
 ```
 
-The core package holds reusable relationship-chain logic. The Android package holds UI, device signing, SQLite persistence, JSON transfer, and first-version migration.
+Пакет `core` содержит переносимую логику цепочки отношений. Пакет `android` содержит интерфейс, подпись устройства, SQLite-хранилище, JSON-перенос и миграцию первой версии.
 
-## Future Versions
+## Будущие версии
 
 ```text
 0.3 LoveMap
-    couple registration
-    partner location
-    battery and motion status
-    server relay
+    регистрация пары
+    местоположение партнёра
+    батарея и статус движения
+    серверный relay
 
 0.4 Presence
-    Bluetooth confirmation
+    Bluetooth-подтверждение
     Near Block
     Together Block
 
 0.5 Event Mining
-    walk detection
-    travel detection
-    return home detection
-    block candidates confirmed by both partners
+    определение прогулки
+    определение путешествия
+    определение возвращения домой
+    кандидаты блоков, подтверждаемые обоими партнёрами
 ```
 
-## Build
+## Сборка
 
-Open `ANDROID/` in Android Studio and run the `app` module.
+Откройте `ANDROID/` в Android Studio и запустите модуль `app`.
 
-The project is intentionally local-first. Background location, Bluetooth scanning, and server synchronization are not enabled yet.
+Проект специально остаётся local-first. Фоновая геолокация, Bluetooth scanning и серверная синхронизация пока не включены.
