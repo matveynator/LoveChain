@@ -1,4 +1,5 @@
 # LoveChain
+<<<<<<< HEAD
 
 LoveChain is a private romantic blockchain and future live trust map for a couple.
 
@@ -83,3 +84,8 @@ The core package holds reusable relationship-chain logic. The Android package ho
 Open `ANDROID/` in Android Studio and run the `app` module.
 
 The project is intentionally local-first. Background location, Bluetooth scanning, and server synchronization are not enabled yet.
+=======
+Blockchain for lovers
+
+<img width="100%" height="100%" alt="lovechain" src="https://github.com/user-attachments/assets/62b8031b-d155-4382-91ef-2eb0fa0e92e4" />
+>>>>>>> 36634ee5b3496e362bf21af33b649ebf1d7e4788
