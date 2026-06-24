@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">LoveChain</string>
+    <string name="app_tagline">Blockchain of eternity for loving people</string>
+    <string name="tab_chain">LoveChain</string>
+    <string name="tab_map">LoveMap</string>
+    <string name="blocks_label">Blocks</string>
+    <string name="chain_label">Chain</string>
+    <string name="chain_valid">Valid</string>
+    <string name="chain_broken">Broken</string>
+    <string name="create_block">Create a block</string>
+    <string name="transfer_chain">Export and import</string>
+    <string name="export_chain">Export</string>
+    <string name="import_chain">Import</string>
+    <string name="export_complete">LoveChain export is ready.</string>
+    <string name="export_failed">Could not export LoveChain.</string>
+    <string name="import_complete">LoveChain import is complete.</string>
+    <string name="import_failed">Could not import this LoveChain file.</string>
+    <string name="block_signed">Block signed by this device.</string>
+    <string name="genesis_title">Genesis Block</string>
+    <string name="genesis_message">The chain is open. Two hearts agreed to remember life together.</string>
+    <string name="lovemap_title">LoveMap - trust map</string>
+    <string name="mutual_openness">Mutual openness</string>
+    <string name="lovemap_placeholder">LoveMap is visible to both partners. Location sharing is transparent, voluntary, and can be paused.</string>
+    <string name="lovemap_default_mode">Default mode: open always for the loved person.</string>
+    <string name="next_services">Next services</string>
+</resources>
